@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8">
+    <title>Account Details - Banking Application</title>
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header>
+    <h1>Your Bank Account</h1>
+</header>
+
+<nav>
+    <ul>
+        <li><a th:href="@{/management/info}">Info</a></li>
+        <li><a th:href="@{/management/userAccount/{id}(id=${user.username})}" sec:authorize="hasRole('ROLE_USER')">Account</a></li>
+        <li><a th:href="@{/transfer}" sec:authorize="hasRole('ROLE_USER')">Transfer</a></li>
+        <li><a th:href="@{/transactions}" sec:authorize="hasRole('ROLE_USER')">Transactions</a></li>
+        <li><a th:href="@{/management/getAll}" sec:authorize="hasAnyRole('ROLE_MODERATOR','ROLE_ADMIN')">User management</a></li>
+        <li>
+            <form th:action="@{/perform-logout}" method="post">
+                <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+                <button type="submit" class="btn btn-secondary">Logout</button>
+            </form>
+        </li>
+    </ul>
+</nav>
+
+<div class="container">
+    <div th:if="${successMessage}" class="alert alert-success" th:text="${successMessage}"></div>
+    <div th:if="${errorMessage}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
+    <div class="card">
+        <h2>Account Information</h2>
+        <table>
+            <tr>
+                <th>Name:</th>
+                <td th:text="${user.firstName + ' ' + user.lastName}"></td>
+            </tr>
+            <tr>
+                <th>Account Number:</th>
+                <td th:text="${account.accountNumber}"></td>
+            </tr>
+            <tr>
+                <th>PESEL:</th>
+                <td th:text="${account.pesel}"></td>
+            </tr>
+            <tr>
+                <th>Email:</th>
+                <td th:text="${user.email}"></td>
+            </tr>
+            <tr>
+                <th>Balance:</th>
+                <td th:text="${account.balance + ' PLN'}" th:class="${account.balance >= 0 ? 'balance-positive' : 'balance-negative'}"></td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="card" sec:authorize="hasRole('ROLE_USER')">
+        <div class="row">
+            <div class="col">
+                <h3>Deposit Funds</h3>
+                <form th:action="@{/deposit}" method="post">
+                    <div class="form-group">
+                        <label for="depositAmount">Amount:</label>
+                        <input type="number" id="depositAmount" name="amount" step="0.01" min="0.01" required>
+                    </div>
+                    <button type="submit" class="btn btn-success">Deposit</button>
+                </form>
+            </div>
+
+            <div class="col">
+                <h3>Withdraw Funds</h3>
+                <form th:action="@{/withdraw}" method="post">
+                    <div class="form-group">
+                        <label for="withdrawAmount">Amount:</label>
+                        <input type="number" id="withdrawAmount" name="amount" step="0.01" min="0.01" required>
+                    </div>
+                    <button type="submit" class="btn btn-danger">Withdraw</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h3>Recent Transactions</h3>
+        <table th:if="${not #lists.isEmpty(account.transactionHistory)}">
+            <thead>
+            <tr>
+                <th>Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Description</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="transaction : ${account.transactionHistory}" th:if="${transactionStat.index < 5}">
+                <td th:text="${transaction.type}"></td>
+                <td th:text="${transaction.amount + ' PLN'}"></td>
+                <td th:text="${#temporals.format(transaction.timestamp, 'yyyy-MM-dd HH:mm')}"></td>
+                <td th:text="${transaction.description}"></td>
+            </tr>
+            </tbody>
+        </table>
+        <p th:if="${#lists.isEmpty(account.transactionHistory)}">No transaction history available.</p>
+        <a th:href="@{/transactions}" sec:authorize="hasRole('ROLE_USER')" class="btn">View All Transactions</a>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 Bank Application. All rights reserved.</p>
+</footer>
+</body>
+</html>

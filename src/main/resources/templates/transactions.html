@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta charset="UTF-8">
+  <title>Transaction History - Banking Application</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header>
+  <h1>Transaction History</h1>
+</header>
+
+<nav>
+  <ul>
+    <li><a th:href="@{/management/info}">Info</a></li>
+    <li><a th:href="@{/management/userAccount/{id}(id=${user.username})}" sec:authorize="hasRole('ROLE_USER')">Account</a></li>
+    <li><a th:href="@{/transfer}" sec:authorize="hasRole('ROLE_USER')">Transfer</a></li>
+    <li><a th:href="@{/transactions}" sec:authorize="hasRole('ROLE_USER')">Transactions</a></li>
+    <li><a th:href="@{/management/getAll}" sec:authorize="hasAnyRole('ROLE_MODERATOR','ROLE_ADMIN')">User management</a></li>
+    <li>
+      <form th:action="@{/perform-logout}" method="post">
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+        <button type="submit" class="btn btn-secondary">Logout</button>
+      </form>
+    </li>
+  </ul>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <h2>Your Transaction History</h2>
+
+    <table th:if="${not #lists.isEmpty(transactions)}">
+      <thead>
+      <tr>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Description</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="transaction : ${transactions}">
+        <td th:text="${transaction.type}"></td>
+        <td th:text="${transaction.amount + ' PLN'}"></td>
+        <td th:text="${#temporals.format(transaction.timestamp, 'yyyy-MM-dd HH:mm')}"></td>
+        <td th:text="${transaction.description}"></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <p th:if="${#lists.isEmpty(transactions)}">No transaction history available.</p>
+
+    <a th:href="@{/management/userAccount/{id}(id=${user.username})}" class="btn">Back to Account</a>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2025 Bank Application. All rights reserved.</p>
+</footer>
+</body>
+</html>

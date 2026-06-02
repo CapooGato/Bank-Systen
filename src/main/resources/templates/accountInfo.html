@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+  <meta charset="UTF-8">
+  <title>Banking Application</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header>
+  <h1>Welcome to Your Bank</h1>
+</header>
+
+<nav>
+  <ul>
+    <li><a th:href="@{/management/info}">Info</a></li>
+    <li><a th:href="@{/management/userAccount/{id}(id=${user.username})}" sec:authorize="hasRole('ROLE_USER')">Account</a></li>
+    <li><a th:href="@{/transfer}" sec:authorize="hasRole('ROLE_USER')">Transfer</a></li>
+    <li><a th:href="@{/transactions}" sec:authorize="hasRole('ROLE_USER')">Transactions</a></li>
+    <li><a th:href="@{/management/getAll}" sec:authorize="hasAnyRole('ROLE_MODERATOR','ROLE_ADMIN')">User management</a></li>
+    <li>
+      <form th:action="@{/perform-logout}" method="post">
+        <input type="hidden" name="${_csrf.parameterName}" value="${_csrf.token}" />
+        <button type="submit" class="btn btn-secondary">Logout</button>
+      </form>
+    </li>
+  </ul>
+</nav>
+
+<div class="container">
+  <h2>Logged-in User Information</h2>
+
+  <!-- Sekcja 1: Podstawowe informacje o użytkowniku -->
+  <div class="info-section">
+    <h3>1. Basic Information from Authentication Object</h3>
+    <div class="info-content">
+      <!-- Metoda 1: Dostęp poprzez #authentication (bezpośredni dostęp do obiektu Authentication) -->
+      <div class="info-item">
+        <p><strong>Username:</strong> <span th:text="${#authentication.name}"></span></p>
+        <p><strong>Name:</strong> <span th:text="${user.getFirstName() + ' ' + user.getLastName()}"></span></p>
+        <p><strong>Authenticated:</strong> <span th:text="${#authentication.authenticated}"></span></p>
+        <p><strong>Details:</strong> <span th:text="${#authentication.details}"></span></p>
+        <p class="code-comment">// Dostęp przez #authentication - pozwala na bezpośredni dostęp do obiektu Authentication</p>
+        <div th:if="${param.success}" class="success-message">
+          <p th:if="${param.success[0] == 'mfa-enabled'}">Two-factor authentication has been activated.</p>
+          <p th:if="${param.success[0] == 'mfa-disabled'}">Two-factor authentication has been deactivated.</p>
+        </div>
+
+        <div th:if="${param.error}" class="error-message">
+          <p th:if="${param.error[0] == 'mfa-already-enabled'}">Two-factor authentication is now active.</p>
+          <p th:if="${param.error[0] == 'mfa-disable-failed'}">Failed to deactivate two-factor authentication.</p>
+        </div>
+      </div>
+
+      <div class="mfa-status">
+        <h3>Two-factor authentication</h3>
+
+        <div th:if="${user.mfaEnabled}">
+          <p class="status-enabled">Two-factor authentication is active.</p>
+
+          <form th:action="@{/totp-disable}" method="post">
+            <button type="submit" class="btn btn-danger">Deactivate two-factor authentication</button>
+          </form>
+        </div>
+
+        <div th:unless="${user.mfaEnabled}">
+          <p class="status-disabled">Two-factor authentication is not active..</p>
+
+          <a th:href="@{/totp-setup}" class="btn btn-primary">Activate two-factor authentication</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sekcja 2: Informacje o rolach i uprawnieniach -->
+  <div class="info-section">
+    <h3>2. User Roles and Authorities</h3>
+    <div class="info-content">
+      <!-- Metoda 2: Dostęp do uprawnień poprzez authentication.authorities -->
+      <div class="info-item">
+        <h4>List of all authorities:</h4>
+        <ul>
+          <li th:each="authority : ${#authentication.authorities}" th:text="${authority.authority}"></li>
+        </ul>
+        <p class="code-comment">// Displaying all user authorities from #authentication.authorities</p>
+      </div>
+
+      <!-- Metoda 3: Użycie atrybutów sec:authorize -->
+      <div class="info-item">
+        <h4>Conditional Sections Based on Roles:</h4>
+        <div sec:authorize="hasRole('USER')">
+          <p>This section is visible only to users with the USER role</p>
+          <p class="code-comment">// Using attribute sec:authorize="hasRole('USER')"</p>
+        </div>
+
+        <div sec:authorize="hasRole('ADMIN')">
+          <p>This section is visible only to users with the ADMIN role</p>
+          <p class="code-comment">// Using attribute sec:authorize="hasRole('ADMIN')"</p>
+        </div>
+
+        <div sec:authorize="hasRole('MODERATOR')">
+          <p>This section is visible only to users with the MODERATOR role</p>
+          <p class="code-comment">// Using attribute sec:authorize="hasRole('MODERATOR')"</p>
+        </div>
+      </div>
+
+      <!-- Metoda 4: Użycie wyrażeń SpEL z operatorami logicznymi -->
+      <div class="info-item">
+        <h4>Complex Access Logic:</h4>
+        <div sec:authorize="hasRole('ADMIN') or hasRole('MODERATOR')">
+          <p>This section is visible to users with either the ADMIN or MODERATOR role</p>
+          <p class="code-comment">// Using complex expression: sec:authorize="hasRole('ADMIN') or hasRole('MODERATOR')"</p>
+        </div>
+
+        <div sec:authorize="hasRole('USER') and !hasRole('ADMIN')">
+          <p>This section is visible only to regular users (USER without ADMIN role)</p>
+          <p class="code-comment">// Using negation: sec:authorize="hasRole('USER') and !hasRole('ADMIN')"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Sekcja 4: Dostęp do głównego obiektu użytkownika -->
+  <div class="info-section">
+    <h3>4. Access to User Entity</h3>
+    <div class="info-content">
+      <!-- Metoda 7: Wyświetlanie informacji o użytkowniku z modelu -->
+      <div class="info-item" th:if="${user != null}">
+        <h4>User Data from Model:</h4>
+        <p><strong>ID:</strong> <span th:text="${user.id}"></span></p>
+        <p><strong>Username:</strong> <span th:text="${user.username}"></span></p>
+        <p><strong>Email:</strong> <span th:text="${user.email}"></span></p>
+        <p class="code-comment">// Displaying data from User object passed in model</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sekcja 5: Dostęp do Principal -->
+  <div class="info-section">
+    <h3>5. Access to Principal via sec:authentication</h3>
+    <div class="info-content">
+      <!-- Metoda 8: Wyświetlanie nazwy użytkownika przez sec:authentication -->
+      <div class="info-item">
+        <p><strong>Username (via sec:authentication):</strong> <span sec:authentication="name"></span></p>
+        <p class="code-comment">// Access to Principal via sec:authentication="name"</p>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <p>Debug: Page load time: <span th:text="${#dates.format(#dates.createNow(), 'dd-MM-yyyy HH:mm:ss')}"></span></p>
+    <p>Debug: Session active: <span th:text="${session != null}"></span></p>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2025 Bank Application. All rights reserved.</p>
+</footer>
+</body>
+</html>

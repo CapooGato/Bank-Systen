@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Register - Banking Application</title>
+  <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<header>
+  <h1>Register a New Bank Account</h1>
+</header>
+
+<nav>
+  <ul>
+    <li><a th:href="@{/}">Home</a></li>
+    <li><a th:href="@{/register}">Register</a></li>
+    <li><a th:href="@{/login}">Login</a></li>
+  </ul>
+</nav>
+
+<div class="container">
+  <div class="card">
+    <h2>Account Registration</h2>
+    <form th:action="@{/register}" th:object="${user}" method="post">
+      <div class="form-group">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" th:field="*{firstName}" required>
+        <div class="error-message" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" th:field="*{lastName}" required>
+        <div class="error-message" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="lastName">Username:</label>
+        <input type="text" id="username" th:field="*{username}" required>
+        <div class="error-message" th:if="${#fields.hasErrors('username')}" th:errors="*{username}"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="pesel">PESEL:</label>
+        <input type="text" id="pesel" th:field="*{pesel}" required>
+        <div class="error-message" th:if="${#fields.hasErrors('pesel')}" th:errors="*{pesel}"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" th:field="*{email}" required>
+        <div class="error-message" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="password">Hasło:</label>
+        <input type="password" id="password" th:field="*{password}" required/>
+        <div class="error-message" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+      </div>
+
+      <div class="form-group">
+        <label for="confirmPassword">Potwierdź hasło:</label>
+        <input type="password" id="confirmPassword" th:field="*{confirmPassword}" required/>
+        <div class="error-message" th:if="${#fields.hasErrors('confirmPassword')}" th:errors="*{confirmPassword}"></div>
+      </div>
+
+      <button type="submit" class="btn">Register</button>
+    </form>
+
+    <p>Already have an account? <a th:href="@{/login}">Login here</a></p>
+  </div>
+</div>
+
+<footer>
+  <p>&copy; 2025 Bank Application. All rights reserved.</p>
+</footer>
+</body>
+</html>
